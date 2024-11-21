@@ -67,4 +67,10 @@ dependencies {
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.recyclerview)
+    implementation(libs.room.runtime)
+    implementation(libs.lifecycle.viewmodel.ktx)
 }
