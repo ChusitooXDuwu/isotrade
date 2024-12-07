@@ -1,54 +1,61 @@
 package com.moviles.isotrade;
 
-
-
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.gson.JsonObject;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
-    private TextView priceTextView;
+    private RecyclerView recyclerView;
+    private StockAdapter stockAdapter;
+    private List<Stock> stockList;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home); // Asegúrate de que el layout esté en activity_home.xml
+        setContentView(R.layout.activity_home);
 
-        priceTextView = findViewById(R.id.priceTextView);
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        fetchStockPrice();
+        // Fetch stock data (mock or real API)
+        stockList = new ArrayList<>(); // Populate with data from the API
+        stockAdapter = new StockAdapter(this, stockList, this::showStockDetails);
+        recyclerView.setAdapter(stockAdapter);
+
+        fetchStockData(); // Fetch data from API
     }
 
-    private void fetchStockPrice() {
-        ApiService service = ApiClient.getRetrofitInstance().create(ApiService.class);
-        Call<JsonObject> call = service.getStockData("GLOBAL_QUOTE", "AAPL", "TU_CLAVE_API");
+    private void fetchStockData() {
+        stockList.add(new Stock("AAPL", "150.00", "+1.2", true, "149.00", "152.00", "148.00", "50M"));
+        stockList.add(new Stock("GOOG", "2800.00", "-0.5", false, "2820.00", "2850.00", "2780.00", "1.5M"));
+        stockList.add(new Stock("AMZN", "3500.00", "+0.8", true, "3480.00", "3550.00", "3450.00", "3M"));
+        stockAdapter.notifyDataSetChanged();
+    }
 
-        call.enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    JsonObject globalQuote = response.body().getAsJsonObject("Global Quote");
-                    if (globalQuote != null) {
-                        String price = globalQuote.get("05. price").getAsString();
-                        priceTextView.setText("$" + price);
-                    } else {
-                        Toast.makeText(HomeActivity.this, "No se encontró información.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
+    private void showStockDetails(Stock stock) {
+        // Show BottomSheetDialog with detailed stock info
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.stock_details, null);
+        dialog.setContentView(dialogView);
 
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                Toast.makeText(HomeActivity.this, "Error al obtener datos.", Toast.LENGTH_SHORT).show();
-            }
-        });
+        ((TextView) dialogView.findViewById(R.id.stockNameTextView)).setText(stock.getName());
+        ((TextView) dialogView.findViewById(R.id.openTextView)).setText("Open: $" + stock.getOpen());
+        ((TextView) dialogView.findViewById(R.id.highTextView)).setText("High: $" + stock.getHigh());
+        ((TextView) dialogView.findViewById(R.id.lowTextView)).setText("Low: $" + stock.getLow());
+        ((TextView) dialogView.findViewById(R.id.volumeTextView)).setText("Volume: " + stock.getVolume());
+
+        dialog.show();
     }
 }
+

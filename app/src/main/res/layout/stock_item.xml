@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- Stock name -->
+        <TextView
+            android:id="@+id/stockNameTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Stock Name"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Current Price -->
+        <TextView
+            android:id="@+id/currentPriceTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Price: $--"
+            android:textSize="16sp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Change and Arrow -->
+        <TextView
+            android:id="@+id/changePercentTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="(--)"
+            android:textSize="16sp"
+            android:layout_marginEnd="4dp" />
+
+        <ImageView
+            android:id="@+id/arrowImageView"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_arrow_up" /> <!-- Add an arrow up/down drawable -->
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
