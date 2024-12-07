@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Stock Name -->
+    <TextView
+        android:id="@+id/stockNameTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Stock Name"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Stock Open Price -->
+    <TextView
+        android:id="@+id/openTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Open: $--" />
+
+    <!-- Stock High Price -->
+    <TextView
+        android:id="@+id/highTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="High: $--" />
+
+    <!-- Stock Low Price -->
+    <TextView
+        android:id="@+id/lowTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Low: $--" />
+
+    <!-- Stock Volume -->
+    <TextView
+        android:id="@+id/volumeTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Volume: --" />
+</LinearLayout>
+
