@@ -1,6 +1,7 @@
 package com.moviles.isotrade;
 
 public class Stock {
+    private String symbol;
     private String name;
     private String currentPrice;
     private String changePercent;
@@ -11,7 +12,8 @@ public class Stock {
     private String volume;
 
     // Constructor
-    public Stock(String name, String currentPrice, String changePercent, boolean isPriceUp, String open, String high, String low, String volume) {
+    public Stock(String symbol, String name, String currentPrice, String changePercent, boolean isPriceUp, String open, String high, String low, String volume) {
+        this.symbol = symbol;
         this.name = name;
         this.currentPrice = currentPrice;
         this.changePercent = changePercent;
@@ -23,6 +25,10 @@ public class Stock {
     }
 
     // Getters
+    public String getSymbol() {
+        return symbol;
+    }
+
     public String getName() {
         return name;
     }
