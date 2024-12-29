@@ -74,4 +74,5 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.cardview)
+    implementation(libs.work.runtime)
 }

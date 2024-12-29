@@ -19,12 +19,17 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.Data;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -89,6 +94,12 @@ public class HomeActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_POST_NOTIFICATIONS);
             }
         }
+
+        // Schedule periodic work to check stock prices
+        WorkRequest stockPriceWorkRequest = new PeriodicWorkRequest.Builder(StockPriceWorker.class, 15, TimeUnit.MINUTES)
+                .setInputData(new Data.Builder().putString("symbol", "AAPL").build())
+                .build();
+        WorkManager.getInstance(this).enqueue(stockPriceWorkRequest);
     }
 
     private boolean isStockInList(String symbol) {
@@ -223,6 +234,7 @@ public class HomeActivity extends AppCompatActivity {
             notificationManager.notify(stock.getSymbol().hashCode(), builder.build());
         }
     }
+
     private void testNotification() {
         // ESTO SOLO ES UN TEST PARA VER SI LAS NOTIFICACIONES FUNCIONAN
         Stock testStock = new Stock("TEST", "Test Stock", "150.00", "0", true, "100.00", "150.00", "90.00", "1000000");
@@ -243,5 +255,4 @@ public class HomeActivity extends AppCompatActivity {
         // TEST DE LAS NOTIFICACIONES
         testNotification();
     }
-
 }
