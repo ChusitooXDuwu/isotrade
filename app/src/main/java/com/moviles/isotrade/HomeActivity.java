@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -85,24 +86,32 @@ public class HomeActivity extends AppCompatActivity {
                     if (stock != null) {
                         stockList.add(stock);
                         stockAdapter.notifyDataSetChanged();
+                    } else {
+                        Toast.makeText(HomeActivity.this, "Stock does not exist", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    // Handle the error
+                    Toast.makeText(HomeActivity.this, "Stock does not exist", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                // Handle the failure
+                Toast.makeText(HomeActivity.this, "Failed to fetch stock data", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private Stock parseStockData(JsonObject jsonObject, String symbol) {
         JsonObject metaData = jsonObject.getAsJsonObject("Meta Data");
+        if (metaData == null) {
+            return null;
+        }
         String name = metaData.get("2. Symbol").getAsString();
 
         JsonObject timeSeries = jsonObject.getAsJsonObject("Time Series (Daily)");
+        if (timeSeries == null || timeSeries.keySet().isEmpty()) {
+            return null;
+        }
         String latestDate = timeSeries.keySet().iterator().next();
         JsonObject dayData = timeSeries.getAsJsonObject(latestDate);
 
