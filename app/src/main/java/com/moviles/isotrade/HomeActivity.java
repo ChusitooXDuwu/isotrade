@@ -1,6 +1,12 @@
 package com.moviles.isotrade;
 
+import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -8,6 +14,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -30,6 +39,11 @@ public class HomeActivity extends AppCompatActivity {
     private ApiService apiService;
     private EditText stockInput;
     private Button addStockButton;
+    private Handler handler;
+    private static final String CHANNEL_ID = "stock_notifications";
+    private static final int CHECK_INTERVAL = 60000; // 1 minute
+    private static final double THRESHOLD = 5.0; // Example threshold
+    private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +75,20 @@ public class HomeActivity extends AppCompatActivity {
 
         // Initial fetch for default stock
         fetchStockData("AAPL");
+
+        // Create notification channel
+        createNotificationChannel();
+
+        // Set up handler to check stock prices periodically
+        handler = new Handler();
+        handler.postDelayed(this::checkStockPrices, CHECK_INTERVAL);
+
+        // Request notification permission for Android 13 or higher
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_POST_NOTIFICATIONS);
+            }
+        }
     }
 
     private boolean isStockInList(String symbol) {
@@ -137,4 +165,83 @@ public class HomeActivity extends AppCompatActivity {
 
         dialog.show();
     }
+
+    private void checkStockPrices() {
+        for (Stock stock : stockList) {
+            fetchStockDataForNotification(stock.getSymbol());
+        }
+        handler.postDelayed(this::checkStockPrices, CHECK_INTERVAL);
+    }
+
+    private void fetchStockDataForNotification(String symbol) {
+        String function = "TIME_SERIES_DAILY";
+        String apiKey = "your_api_key"; // Replace with your actual API key
+
+        Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
+        call.enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    JsonObject jsonObject = response.body();
+                    Stock stock = parseStockData(jsonObject, symbol);
+                    if (stock != null) {
+                        checkThreshold(stock);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                // Handle the failure
+            }
+        });
+    }
+
+    private void checkThreshold(Stock stock) {
+        double currentPrice = Double.parseDouble(stock.getCurrentPrice());
+        double openPrice = Double.parseDouble(stock.getOpen());
+        double changePercent = ((currentPrice - openPrice) / openPrice) * 100;
+
+        if (Math.abs(changePercent) >= THRESHOLD) {
+            showNotification(stock, changePercent);
+        }
+    }
+
+    private void showNotification(Stock stock, double changePercent) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification) // Ensure this icon exists in res/drawable
+                .setContentTitle("Stock Price Alert")
+                .setContentText(stock.getName() + " price changed by " + String.format("%.2f", changePercent) + "%")
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                notificationManager.notify(stock.getSymbol().hashCode(), builder.build());
+            }
+        } else {
+            notificationManager.notify(stock.getSymbol().hashCode(), builder.build());
+        }
+    }
+    private void testNotification() {
+        // ESTO SOLO ES UN TEST PARA VER SI LAS NOTIFICACIONES FUNCIONAN
+        Stock testStock = new Stock("TEST", "Test Stock", "150.00", "0", true, "100.00", "150.00", "90.00", "1000000");
+        checkThreshold(testStock);
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Stock Notifications";
+            String description = "Channel for stock price alerts";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+        // TEST DE LAS NOTIFICACIONES
+        testNotification();
+    }
+
 }
