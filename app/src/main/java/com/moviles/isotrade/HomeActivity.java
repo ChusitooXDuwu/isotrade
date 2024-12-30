@@ -1,6 +1,7 @@
 package com.moviles.isotrade;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.pm.PackageManager;
@@ -20,7 +21,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.Data;
-import androidx.work.OneTimeWorkRequest;
+import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
@@ -47,7 +48,7 @@ public class HomeActivity extends AppCompatActivity {
     private Button addStockButton;
     private Handler handler;
     private static final String CHANNEL_ID = "stock_notifications";
-    private static final int CHECK_INTERVAL = 60000; // 1 minute
+    private static final int CHECK_INTERVAL = 3600000; // 1 hour
     private static final double THRESHOLD = 5.0; // Example threshold
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1;
 
@@ -66,7 +67,17 @@ public class HomeActivity extends AppCompatActivity {
         apiService = retrofit.create(ApiService.class);
 
         stockList = new ArrayList<>();
-        stockAdapter = new StockAdapter(this, stockList, this::showStockDetails);
+        stockAdapter = new StockAdapter(stockList, new StockAdapter.OnStockClickListener() {
+            @Override
+            public void onStockClick(Stock stock) {
+                showStockDetails(stock);
+            }
+
+            @Override
+            public void onStockLongClick(Stock stock) {
+                showDeleteConfirmationDialog(stock);
+            }
+        });
         recyclerView.setAdapter(stockAdapter);
 
         stockInput = findViewById(R.id.stockInput);
@@ -96,11 +107,8 @@ public class HomeActivity extends AppCompatActivity {
             }
         }
 
-        // Schedule periodic work to check stock prices
-        WorkRequest stockPriceWorkRequest = new PeriodicWorkRequest.Builder(StockPriceWorker.class, 15, TimeUnit.MINUTES)
-                .setInputData(new Data.Builder().putString("symbol", "AAPL").build())
-                .build();
-        WorkManager.getInstance(this).enqueue(stockPriceWorkRequest);
+        // Schedule periodic work to check stock prices with an initial delay
+        scheduleStockPriceWork("AAPL");
 
         // Set up test notification button
         Button testNotificationButton = findViewById(R.id.testNotificationButton);
@@ -130,6 +138,7 @@ public class HomeActivity extends AppCompatActivity {
                     if (stock != null) {
                         stockList.add(stock);
                         stockAdapter.notifyDataSetChanged();
+                        scheduleStockPriceWork(symbol); // Schedule work for the new stock
                     } else {
                         Toast.makeText(HomeActivity.this, "Stock does not exist", Toast.LENGTH_SHORT).show();
                     }
@@ -260,5 +269,32 @@ public class HomeActivity extends AppCompatActivity {
 
         // Show the notification
         showNotification(mockStock, mockChangePercent);
+    }
+
+    private void showDeleteConfirmationDialog(Stock stock) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Stock")
+                .setMessage("Are you sure you want to delete " + stock.getName() + "?")
+                .setPositiveButton("Yes", (dialog, which) -> deleteStock(stock))
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void deleteStock(Stock stock) {
+        stockList.remove(stock);
+        stockAdapter.notifyDataSetChanged();
+        Toast.makeText(this, stock.getName() + " deleted", Toast.LENGTH_SHORT).show();
+    }
+
+    private void scheduleStockPriceWork(String symbol) {
+        WorkRequest stockPriceWorkRequest = new PeriodicWorkRequest.Builder(StockPriceWorker.class, 1, TimeUnit.HOURS)
+                .setInitialDelay(1, TimeUnit.HOURS) // Add an initial delay of 1 hour
+                .setInputData(new Data.Builder().putString("symbol", symbol).build())
+                .build();
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "StockPriceWorker_" + symbol,
+                ExistingPeriodicWorkPolicy.KEEP, // Keep the existing work if it exists
+                (PeriodicWorkRequest) stockPriceWorkRequest
+        );
     }
 }

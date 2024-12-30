@@ -15,18 +15,22 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.google.gson.JsonObject;
-import android.util.Log;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class StockPriceWorker extends Worker {
     private static final String TAG = "StockPriceWorker";
     private static final String CHANNEL_ID = "stock_notifications";
     private static final double THRESHOLD = 5.0; // Example threshold
+    private static final long CACHE_DURATION = 3600000; // 1 hour in milliseconds
     private ApiService apiService;
+    private static final Map<String, CachedStockData> cache = new HashMap<>();
 
     public StockPriceWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -51,30 +55,39 @@ public class StockPriceWorker extends Worker {
 
     private void fetchStockDataForNotification(String symbol) {
         Log.d(TAG, "Fetching stock data for symbol: " + symbol);
-        String function = "TIME_SERIES_DAILY";
-        String apiKey = "KYZBJMS6CTE4CGQ1"; // Replace with your actual API key
+        long currentTime = System.currentTimeMillis();
+        CachedStockData cachedData = cache.get(symbol);
 
-        Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
-        call.enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                Log.d(TAG, "Stock data fetched successfully");
-                if (response.isSuccessful() && response.body() != null) {
-                    JsonObject jsonObject = response.body();
-                    Stock stock = parseStockData(jsonObject, symbol);
-                    if (stock != null) {
-                        checkThreshold(stock);
+        if (cachedData != null && (currentTime - cachedData.timestamp) < CACHE_DURATION) {
+            Log.d(TAG, "Using cached data for symbol: " + symbol);
+            checkThreshold(cachedData.stock);
+        } else {
+            String function = "TIME_SERIES_DAILY";
+            String apiKey = "KYZBJMS6CTE4CGQ1"; // Replace with your actual API key
+
+            Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
+            call.enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    Log.d(TAG, "Stock data fetched successfully");
+                    if (response.isSuccessful() && response.body() != null) {
+                        JsonObject jsonObject = response.body();
+                        Stock stock = parseStockData(jsonObject, symbol);
+                        if (stock != null) {
+                            cache.put(symbol, new CachedStockData(stock, currentTime));
+                            checkThreshold(stock);
+                        }
+                    } else {
+                        Log.e("StockPriceWorker", "Response unsuccessful or body is null");
                     }
-                } else {
-                    Log.e("StockPriceWorker", "Response unsuccessful or body is null");
                 }
-            }
 
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                Log.e("StockPriceWorker", "Failed to fetch stock data", t);
-            }
-        });
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    Log.e("StockPriceWorker", "Failed to fetch stock data", t);
+                }
+            });
+        }
     }
 
     private Stock parseStockData(JsonObject jsonObject, String symbol) {
@@ -129,6 +142,16 @@ public class StockPriceWorker extends Worker {
             }
         } else {
             notificationManager.notify(stock.getSymbol().hashCode(), builder.build());
+        }
+    }
+
+    private static class CachedStockData {
+        Stock stock;
+        long timestamp;
+
+        CachedStockData(Stock stock, long timestamp) {
+            this.stock = stock;
+            this.timestamp = timestamp;
         }
     }
 }
