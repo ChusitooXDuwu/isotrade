@@ -34,4 +34,15 @@
         app:layout_constraintTop_toBottomOf="@+id/stockInput"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:listitem="@layout/stock_item" />
+
+    <Button
+        android:id="@+id/testWorkerButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Test Worker"
+        app:layout_constraintTop_toBottomOf="@+id/addStockButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

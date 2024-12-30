@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
@@ -83,6 +84,8 @@ public class HomeActivity extends AppCompatActivity {
 
         // Create notification channel
         createNotificationChannel();
+        Button testWorkerButton = findViewById(R.id.testWorkerButton);
+        testWorkerButton.setOnClickListener(v -> testStockPriceWorker());
 
         // Set up handler to check stock prices periodically
         handler = new Handler();
@@ -113,7 +116,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private void fetchStockData(String symbol) {
         String function = "TIME_SERIES_DAILY";
-        String apiKey = "your_api_key"; // Replace with your actual API key
+        String apiKey = "KYZBJMS6CTE4CGQ1"; // Replace with your actual API key
 
         Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
         call.enqueue(new Callback<JsonObject>() {
@@ -186,7 +189,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private void fetchStockDataForNotification(String symbol) {
         String function = "TIME_SERIES_DAILY";
-        String apiKey = "your_api_key"; // Replace with your actual API key
+        String apiKey = "KYZBJMS6CTE4CGQ1"; // Replace with your actual API key
 
         Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
         call.enqueue(new Callback<JsonObject>() {
@@ -235,12 +238,6 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    private void testNotification() {
-        // ESTO SOLO ES UN TEST PARA VER SI LAS NOTIFICACIONES FUNCIONAN
-        Stock testStock = new Stock("TEST", "Test Stock", "150.00", "0", true, "100.00", "150.00", "90.00", "1000000");
-        checkThreshold(testStock);
-    }
-
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Stock Notifications";
@@ -252,7 +249,12 @@ public class HomeActivity extends AppCompatActivity {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
-        // TEST DE LAS NOTIFICACIONES
-        testNotification();
+    }
+
+    private void testStockPriceWorker() {
+        WorkRequest testWorkRequest = new OneTimeWorkRequest.Builder(StockPriceWorker.class)
+                .setInputData(new Data.Builder().putString("symbol", "AAPL").build())
+                .build();
+        WorkManager.getInstance(this).enqueue(testWorkRequest);
     }
 }

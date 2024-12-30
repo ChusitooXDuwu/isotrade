@@ -4,12 +4,13 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
-import androidx.core.content.ContextCompat;
+import android.util.Log;
 import android.content.pm.PackageManager;
 import android.Manifest;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -47,7 +48,7 @@ public class StockPriceWorker extends Worker {
 
     private void fetchStockDataForNotification(String symbol) {
         String function = "TIME_SERIES_DAILY";
-        String apiKey = "your_api_key"; // Replace with your actual API key
+        String apiKey = "KYZBJMS6CTE4CGQ1"; // Replace with your actual API key
 
         Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
         call.enqueue(new Callback<JsonObject>() {
@@ -59,12 +60,14 @@ public class StockPriceWorker extends Worker {
                     if (stock != null) {
                         checkThreshold(stock);
                     }
+                } else {
+                    Log.e("StockPriceWorker", "Response unsuccessful or body is null");
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                // Handle the failure
+                Log.e("StockPriceWorker", "Failed to fetch stock data", t);
             }
         });
     }
@@ -72,12 +75,14 @@ public class StockPriceWorker extends Worker {
     private Stock parseStockData(JsonObject jsonObject, String symbol) {
         JsonObject metaData = jsonObject.getAsJsonObject("Meta Data");
         if (metaData == null) {
+            Log.e("StockPriceWorker", "Meta Data is null");
             return null;
         }
         String name = metaData.get("2. Symbol").getAsString();
 
         JsonObject timeSeries = jsonObject.getAsJsonObject("Time Series (Daily)");
         if (timeSeries == null || timeSeries.keySet().isEmpty()) {
+            Log.e("StockPriceWorker", "Time Series (Daily) is null or empty");
             return null;
         }
         String latestDate = timeSeries.keySet().iterator().next();
@@ -104,7 +109,7 @@ public class StockPriceWorker extends Worker {
 
     private void showNotification(Stock stock, double changePercent) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification) // Ensure this icon exists in res/drawable
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle("Stock Price Alert")
                 .setContentText(stock.getName() + " price changed by " + String.format("%.2f", changePercent) + "%")
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
