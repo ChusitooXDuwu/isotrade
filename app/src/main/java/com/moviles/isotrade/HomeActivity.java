@@ -84,8 +84,6 @@ public class HomeActivity extends AppCompatActivity {
 
         // Create notification channel
         createNotificationChannel();
-        Button testWorkerButton = findViewById(R.id.testWorkerButton);
-        testWorkerButton.setOnClickListener(v -> testStockPriceWorker());
 
         // Set up handler to check stock prices periodically
         handler = new Handler();
@@ -103,6 +101,10 @@ public class HomeActivity extends AppCompatActivity {
                 .setInputData(new Data.Builder().putString("symbol", "AAPL").build())
                 .build();
         WorkManager.getInstance(this).enqueue(stockPriceWorkRequest);
+
+        // Set up test notification button
+        Button testNotificationButton = findViewById(R.id.testNotificationButton);
+        testNotificationButton.setOnClickListener(v -> testNotification());
     }
 
     private boolean isStockInList(String symbol) {
@@ -251,10 +253,12 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    private void testStockPriceWorker() {
-        WorkRequest testWorkRequest = new OneTimeWorkRequest.Builder(StockPriceWorker.class)
-                .setInputData(new Data.Builder().putString("symbol", "AAPL").build())
-                .build();
-        WorkManager.getInstance(this).enqueue(testWorkRequest);
+    private void testNotification() {
+        // Create mock stock data
+        Stock mockStock = new Stock("AAPL", "Apple Inc.", "150.00", "0", true, "145.00", "155.00", "140.00", "1000000");
+        double mockChangePercent = 5.0; // Example change percent
+
+        // Show the notification
+        showNotification(mockStock, mockChangePercent);
     }
 }

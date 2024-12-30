@@ -15,7 +15,7 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.google.gson.JsonObject;
-
+import android.util.Log;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -23,6 +23,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class StockPriceWorker extends Worker {
+    private static final String TAG = "StockPriceWorker";
     private static final String CHANNEL_ID = "stock_notifications";
     private static final double THRESHOLD = 5.0; // Example threshold
     private ApiService apiService;
@@ -34,12 +35,14 @@ public class StockPriceWorker extends Worker {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         apiService = retrofit.create(ApiService.class);
+        Log.d(TAG, "StockPriceWorker initialized");
     }
 
     @NonNull
     @Override
     public Result doWork() {
         String symbol = getInputData().getString("symbol");
+        Log.d(TAG, "doWork called with symbol: " + symbol);
         if (symbol != null) {
             fetchStockDataForNotification(symbol);
         }
@@ -47,6 +50,7 @@ public class StockPriceWorker extends Worker {
     }
 
     private void fetchStockDataForNotification(String symbol) {
+        Log.d(TAG, "Fetching stock data for symbol: " + symbol);
         String function = "TIME_SERIES_DAILY";
         String apiKey = "KYZBJMS6CTE4CGQ1"; // Replace with your actual API key
 
@@ -54,6 +58,7 @@ public class StockPriceWorker extends Worker {
         call.enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                Log.d(TAG, "Stock data fetched successfully");
                 if (response.isSuccessful() && response.body() != null) {
                     JsonObject jsonObject = response.body();
                     Stock stock = parseStockData(jsonObject, symbol);
@@ -73,6 +78,7 @@ public class StockPriceWorker extends Worker {
     }
 
     private Stock parseStockData(JsonObject jsonObject, String symbol) {
+        Log.d(TAG, "Parsing stock data for symbol: " + symbol);
         JsonObject metaData = jsonObject.getAsJsonObject("Meta Data");
         if (metaData == null) {
             Log.e("StockPriceWorker", "Meta Data is null");
@@ -98,6 +104,7 @@ public class StockPriceWorker extends Worker {
     }
 
     private void checkThreshold(Stock stock) {
+        Log.d(TAG, "Checking threshold for stock: " + stock.getSymbol());
         double currentPrice = Double.parseDouble(stock.getCurrentPrice());
         double openPrice = Double.parseDouble(stock.getOpen());
         double changePercent = ((currentPrice - openPrice) / openPrice) * 100;
@@ -108,6 +115,7 @@ public class StockPriceWorker extends Worker {
     }
 
     private void showNotification(Stock stock, double changePercent) {
+        Log.d(TAG, "Showing notification for stock: " + stock.getSymbol());
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle("Stock Price Alert")
