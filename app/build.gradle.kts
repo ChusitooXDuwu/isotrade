@@ -75,4 +75,5 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.cardview)
     implementation(libs.work.runtime)
+    implementation(libs.mpandroidchart)
 }

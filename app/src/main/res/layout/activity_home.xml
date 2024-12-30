@@ -34,4 +34,14 @@
         app:layout_constraintTop_toBottomOf="@+id/stockInput"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:listitem="@layout/stock_item" />
+
+    <Button
+        android:id="@+id/sharePortfolioButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Share Portfolio"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_margin="16dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

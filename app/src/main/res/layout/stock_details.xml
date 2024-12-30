@@ -42,6 +42,23 @@
         android:id="@+id/volumeTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Volume: --" />
-</LinearLayout>
+        android:text="Volume: --"
+        android:layout_marginBottom="16dp" />
 
+    <!-- CandleStickChart for Stock Data -->
+    <com.github.mikephil.charting.charts.CandleStickChart
+        android:id="@+id/candleStickChart"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Button for future actions -->
+    <Button
+        android:id="@+id/downloadDataButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Perform Action"
+        android:backgroundTint="@color/design_default_color_primary"
+        android:textColor="@android:color/white" />
+
+</LinearLayout>
