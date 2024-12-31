@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,7 +32,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
@@ -51,6 +55,8 @@ public class HomeActivity extends AppCompatActivity {
     private static final int CHECK_INTERVAL = 3600000; // 1 hour
     private static final double THRESHOLD = 5.0; // Example threshold
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1;
+    private static final String PREFS_NAME = "StockPrefs";
+    private static final String STOCKS_KEY = "stocks";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,8 +96,8 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
-        // Initial fetch for default stock
-        fetchStockData("AAPL");
+        // Load saved stocks
+        loadSavedStocks();
 
         // Create notification channel
         createNotificationChannel();
@@ -106,9 +112,6 @@ public class HomeActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_POST_NOTIFICATIONS);
             }
         }
-
-        // Schedule periodic work to check stock prices with an initial delay
-        scheduleStockPriceWork("AAPL");
 
         // Set up test notification button
         Button testNotificationButton = findViewById(R.id.testNotificationButton);
@@ -139,6 +142,7 @@ public class HomeActivity extends AppCompatActivity {
                         stockList.add(stock);
                         stockAdapter.notifyDataSetChanged();
                         scheduleStockPriceWork(symbol); // Schedule work for the new stock
+                        saveStocks(); // Save the updated stock list
                     } else {
                         Toast.makeText(HomeActivity.this, "Stock does not exist", Toast.LENGTH_SHORT).show();
                     }
@@ -275,7 +279,10 @@ public class HomeActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Stock")
                 .setMessage("Are you sure you want to delete " + stock.getName() + "?")
-                .setPositiveButton("Yes", (dialog, which) -> deleteStock(stock))
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    deleteStock(stock);
+                    saveStocks(); // Save the updated stock list
+                })
                 .setNegativeButton("No", null)
                 .show();
     }
@@ -296,5 +303,24 @@ public class HomeActivity extends AppCompatActivity {
                 ExistingPeriodicWorkPolicy.KEEP, // Keep the existing work if it exists
                 (PeriodicWorkRequest) stockPriceWorkRequest
         );
+    }
+
+    private void saveStocks() {
+        SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Set<String> stockSymbols = new HashSet<>();
+        for (Stock stock : stockList) {
+            stockSymbols.add(stock.getSymbol());
+        }
+        editor.putStringSet(STOCKS_KEY, stockSymbols);
+        editor.apply();
+    }
+
+    private void loadSavedStocks() {
+        SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        Set<String> stockSymbols = sharedPreferences.getStringSet(STOCKS_KEY, new HashSet<>());
+        for (String symbol : stockSymbols) {
+            fetchStockData(symbol);
+        }
     }
 }
