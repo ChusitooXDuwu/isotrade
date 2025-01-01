@@ -1,6 +1,5 @@
 package com.moviles.isotrade;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,12 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
-    private final Context context;
     private final List<Stock> stockList;
     private final OnStockClickListener listener;
 
-    public StockAdapter(Context context, List<Stock> stockList, OnStockClickListener listener) {
-        this.context = context;
+    public StockAdapter(List<Stock> stockList, OnStockClickListener listener) {
         this.stockList = stockList;
         this.listener = listener;
     }
@@ -26,14 +23,13 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
     @NonNull
     @Override
     public StockViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.stock_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.stock_item, parent, false);
         return new StockViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull StockViewHolder holder, int position) {
         Stock stock = stockList.get(position);
-
         holder.stockNameTextView.setText(stock.getName());
         holder.currentPriceTextView.setText("$" + stock.getCurrentPrice());
         holder.changePercentTextView.setText("(" + stock.getChangePercent() + "%)");
@@ -47,6 +43,12 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
 
         // Handle item click
         holder.itemView.setOnClickListener(v -> listener.onStockClick(stock));
+
+        // Handle item long click
+        holder.itemView.setOnLongClickListener(v -> {
+            listener.onStockLongClick(stock);
+            return true;
+        });
     }
 
     @Override
@@ -69,6 +71,6 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
 
     public interface OnStockClickListener {
         void onStockClick(Stock stock);
+        void onStockLongClick(Stock stock);
     }
 }
-
