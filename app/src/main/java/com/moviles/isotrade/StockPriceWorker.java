@@ -76,15 +76,17 @@ public class StockPriceWorker extends Worker {
                         if (stock != null) {
                             cache.put(symbol, new CachedStockData(stock, currentTime));
                             checkThreshold(stock);
+                        } else {
+                            Log.e(TAG, "Failed to parse stock data");
                         }
                     } else {
-                        Log.e("StockPriceWorker", "Response unsuccessful or body is null");
+                        Log.e(TAG, "Response unsuccessful or body is null");
                     }
                 }
 
                 @Override
                 public void onFailure(Call<JsonObject> call, Throwable t) {
-                    Log.e("StockPriceWorker", "Failed to fetch stock data", t);
+                    Log.e(TAG, "Failed to fetch stock data", t);
                 }
             });
         }
@@ -94,18 +96,23 @@ public class StockPriceWorker extends Worker {
         Log.d(TAG, "Parsing stock data for symbol: " + symbol);
         JsonObject metaData = jsonObject.getAsJsonObject("Meta Data");
         if (metaData == null) {
-            Log.e("StockPriceWorker", "Meta Data is null");
+            Log.e(TAG, "Meta Data is null");
             return null;
         }
         String name = metaData.get("2. Symbol").getAsString();
 
         JsonObject timeSeries = jsonObject.getAsJsonObject("Time Series (Daily)");
         if (timeSeries == null || timeSeries.keySet().isEmpty()) {
-            Log.e("StockPriceWorker", "Time Series (Daily) is null or empty");
+            Log.e(TAG, "Time Series (Daily) is null or empty");
             return null;
         }
         String latestDate = timeSeries.keySet().iterator().next();
         JsonObject dayData = timeSeries.getAsJsonObject(latestDate);
+
+        if (dayData == null) {
+            Log.e(TAG, "Day data is null");
+            return null;
+        }
 
         String open = dayData.get("1. open").getAsString();
         String high = dayData.get("2. high").getAsString();
