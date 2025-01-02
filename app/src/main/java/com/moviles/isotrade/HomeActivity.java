@@ -12,6 +12,7 @@ import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -87,6 +88,7 @@ public class HomeActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://www.alphavantage.co/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -117,9 +119,6 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
-        // Load saved stocks
-        loadSavedStocks();
-
         // Create notification channel
         createNotificationChannel();
 
@@ -137,6 +136,17 @@ public class HomeActivity extends AppCompatActivity {
         // Set up test notification button
         Button testNotificationButton = findViewById(R.id.testNotificationButton);
         testNotificationButton.setOnClickListener(v -> testNotification());
+
+        // Set up logout button
+        Button logoutButton = findViewById(R.id.logoutButton);
+        logoutButton.setOnClickListener(v -> {
+
+            // Redirect to MainActivity
+            Intent intent = new Intent(HomeActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish(); // Close HomeActivity
+        });
+        loadSavedStocks();
     }
 
     private boolean isStockInList(String symbol) {
