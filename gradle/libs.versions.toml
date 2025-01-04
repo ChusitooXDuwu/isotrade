@@ -19,6 +19,7 @@ cardview = "1.0.0"
 work = "2.7.1"
 
 [libraries]
+
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

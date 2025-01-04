@@ -149,6 +149,16 @@ public class HomeActivity extends AppCompatActivity {
         loadSavedStocks();
     }
 
+    private void checkThreshold(Stock stock) {
+        double currentPrice = Double.parseDouble(stock.getCurrentPrice());
+        double openPrice = Double.parseDouble(stock.getOpen());
+        double changePercent = ((currentPrice - openPrice) / openPrice) * 100;
+
+        if (Math.abs(changePercent) >= THRESHOLD) {
+            showNotification(stock, changePercent);
+        }
+    }
+
     private boolean isStockInList(String symbol) {
         for (Stock stock : stockList) {
             if (stock.getSymbol().equalsIgnoreCase(symbol)) {
@@ -358,16 +368,6 @@ public class HomeActivity extends AppCompatActivity {
         }
         return candleEntries;
         }
-    
-    private void checkThreshold(Stock stock) {
-        double currentPrice = Double.parseDouble(stock.getCurrentPrice());
-        double openPrice = Double.parseDouble(stock.getOpen());
-        double changePercent = ((currentPrice - openPrice) / openPrice) * 100;
-
-        if (Math.abs(changePercent) >= THRESHOLD) {
-            showNotification(stock, changePercent);
-        }
-    }
         private void showDaysInputDialog() {
             // Crear el cuadro de diálogo
             AlertDialog.Builder builder = new AlertDialog.Builder(this);

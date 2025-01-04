@@ -5,15 +5,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.util.List;
 
 public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
-    private final List<Stock> stockList;
-    private final OnStockClickListener listener;
+    private List<Stock> stockList;
+    private OnStockClickListener listener;
+
+    public interface OnStockClickListener {
+        void onStockClick(Stock stock);
+        void onStockLongClick(Stock stock);
+    }
 
     public StockAdapter(List<Stock> stockList, OnStockClickListener listener) {
         this.stockList = stockList;
@@ -30,6 +33,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
     @Override
     public void onBindViewHolder(@NonNull StockViewHolder holder, int position) {
         Stock stock = stockList.get(position);
+        stock.calculateChangePercent();
         holder.stockNameTextView.setText(stock.getName());
         holder.currentPriceTextView.setText("$" + stock.getCurrentPrice());
         holder.changePercentTextView.setText("(" + stock.getChangePercent() + "%)");
@@ -57,7 +61,9 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
     }
 
     public static class StockViewHolder extends RecyclerView.ViewHolder {
-        TextView stockNameTextView, currentPriceTextView, changePercentTextView;
+        TextView stockNameTextView;
+        TextView currentPriceTextView;
+        TextView changePercentTextView;
         ImageView arrowImageView;
 
         public StockViewHolder(@NonNull View itemView) {
@@ -67,10 +73,5 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
             changePercentTextView = itemView.findViewById(R.id.changePercentTextView);
             arrowImageView = itemView.findViewById(R.id.arrowImageView);
         }
-    }
-
-    public interface OnStockClickListener {
-        void onStockClick(Stock stock);
-        void onStockLongClick(Stock stock);
     }
 }

@@ -60,6 +60,16 @@ public class Stock {
     public String getVolume() {
         return volume;
     }
+    public void calculateChangePercent() {
+        double current = Double.parseDouble(currentPrice);
+        double openPrice = Double.parseDouble(open);
+        double change = ((current - openPrice) / openPrice) * 100;
+        this.changePercent = String.format("%.2f", change);
+        this.isPriceUp = change > 0;
+    }
 }
+
+
+
 
 
