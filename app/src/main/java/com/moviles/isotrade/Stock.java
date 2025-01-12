@@ -11,7 +11,7 @@ public class Stock {
     private String low;
     private String volume;
 
-    // Constructor
+
     public Stock(String symbol, String name, String currentPrice, String changePercent, boolean isPriceUp, String open, String high, String low, String volume) {
         this.symbol = symbol;
         this.name = name;
@@ -24,7 +24,7 @@ public class Stock {
         this.volume = volume;
     }
 
-    // Getters
+
     public String getSymbol() {
         return symbol;
     }

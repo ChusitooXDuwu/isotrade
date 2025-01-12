@@ -8,14 +8,8 @@ import android.os.Build;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.Manifest;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Environment;
@@ -74,8 +68,8 @@ public class HomeActivity extends AppCompatActivity {
     private Button addStockButton;
     private Handler handler;
     private static final String CHANNEL_ID = "stock_notifications";
-    private static final int CHECK_INTERVAL = 3600000; // 1 hour
-    private static final double THRESHOLD = 5.0; // Example threshold
+    private static final int CHECK_INTERVAL = 3600000;
+    private static final double THRESHOLD = 5.0;
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1;
     private static final String PREFS_NAME = "StockPrefs";
     private static final String STOCKS_KEY = "stocks";
@@ -118,33 +112,27 @@ public class HomeActivity extends AppCompatActivity {
                 fetchStockData(symbol);
             }
         });
-
-        // Create notification channel
         createNotificationChannel();
-
-        // Set up handler to check stock prices periodically
         handler = new Handler();
         handler.postDelayed(this::checkStockPrices, CHECK_INTERVAL);
-
-        // Request notification permission for Android 13 or higher
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_POST_NOTIFICATIONS);
             }
         }
 
-        // Set up test notification button
+
         Button testNotificationButton = findViewById(R.id.testNotificationButton);
         testNotificationButton.setOnClickListener(v -> testNotification());
 
-        // Set up logout button
+
         Button logoutButton = findViewById(R.id.logoutButton);
         logoutButton.setOnClickListener(v -> {
 
-            // Redirect to MainActivity
+
             Intent intent = new Intent(HomeActivity.this, MainActivity.class);
             startActivity(intent);
-            finish(); // Close HomeActivity
+            finish();
         });
         loadSavedStocks();
     }
@@ -170,7 +158,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private void fetchStockData(String symbol) {
         String function = "TIME_SERIES_DAILY";
-        String apiKey = "KYZBJMS6CTE4CGQ1"; // Replace with your actual API key
+        String apiKey = "KYZBJMS6CTE4CGQ1";
 
         Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
         call.enqueue(new Callback<JsonObject>() {
@@ -184,8 +172,8 @@ public class HomeActivity extends AppCompatActivity {
                     if (stock != null) {
                         stockList.add(stock);
                         stockAdapter.notifyDataSetChanged();
-                        scheduleStockPriceWork(symbol); // Schedule work for the new stock
-                        saveStocks(); // Save the updated stock list
+                        scheduleStockPriceWork(symbol);
+                        saveStocks();
                     } else {
                         Toast.makeText(HomeActivity.this, "Stock does not exist", Toast.LENGTH_SHORT).show();
                     }
@@ -235,15 +223,15 @@ public class HomeActivity extends AppCompatActivity {
         ((TextView) dialogView.findViewById(R.id.lowTextView)).setText("Low: $" + stock.getLow());
         ((TextView) dialogView.findViewById(R.id.volumeTextView)).setText("Volume: " + stock.getVolume());
 
-        // Configurar el gráfico de velas
+
         CandleStickChart candleStickChart = dialogView.findViewById(R.id.candleStickChart);
         fetchHistoricalData(stock.getSymbol(), candleStickChart);
 
-        // Botón para descargar datos
+
         Button downloadDataButton = dialogView.findViewById(R.id.downloadDataButton);
         downloadDataButton.setOnClickListener(v -> showDaysInputDialog(stock.getSymbol()));
 
-        // Mostrar el diálogo
+
         dialog.show();
     }
 
@@ -255,16 +243,15 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void showDaysInputDialog(String symbol) {
-        // Crear el cuadro de diálogo
         androidx.appcompat.app.AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter number of days");
 
-        // EditText para ingresar el número de días
+
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
         builder.setView(input);
 
-        // Botón para confirmar
+
         builder.setPositiveButton("Download", (dialog, which) -> {
             String daysText = input.getText().toString().trim();
             if (!daysText.isEmpty()) {
@@ -289,7 +276,7 @@ public class HomeActivity extends AppCompatActivity {
         }
     private void fetchStockDataForNotification(String symbol) {
         String function = "TIME_SERIES_DAILY";
-        String apiKey = "KYZBJMS6CTE4CGQ1"; // Replace with your actual API key
+        String apiKey = "KYZBJMS6CTE4CGQ1";
 
         Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
         call.enqueue(new Callback<JsonObject>() {
@@ -306,14 +293,14 @@ public class HomeActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                // Handle the failure
+                Log.e("fetchStockDataForNotification", "Failed to fetch stock data", t);
             }
         });
     }
 
     private void fetchHistoricalData(String symbol, CandleStickChart candleStickChart) {
         String function = "TIME_SERIES_DAILY";
-        String apiKey = "your_api_key"; // Reemplaza con tu clave API
+        String apiKey = "KYZBJMS6CTE4CGQ1";
 
         Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
         call.enqueue(new Callback<JsonObject>() {
@@ -351,7 +338,7 @@ public class HomeActivity extends AppCompatActivity {
 
         int index = 0;
         for (String date : timeSeries.keySet()) {
-            if (index >= 60) break; // Limitar a los últimos 60 días
+            if (index >= 60) break;
 
             JsonObject dayData = timeSeries.getAsJsonObject(date);
             try {
@@ -369,16 +356,16 @@ public class HomeActivity extends AppCompatActivity {
         return candleEntries;
         }
         private void showDaysInputDialog() {
-            // Crear el cuadro de diálogo
+
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Enter number of days");
 
-            // EditText para ingresar el número de días
+
             final EditText input = new EditText(this);
             input.setInputType(InputType.TYPE_CLASS_NUMBER);
             builder.setView(input);
 
-            // Botón para confirmar
+
             builder.setPositiveButton("Download", (dialog, which) -> {
                 String daysText = input.getText().toString().trim();
                 if (!daysText.isEmpty()) {
@@ -386,7 +373,7 @@ public class HomeActivity extends AppCompatActivity {
                     try {
                         days = Integer.parseInt(daysText);
                         if (days > 0) {
-                            fetchAndSaveJsonData("AAPL", days); // Cambiar "AAPL" por el símbolo deseado
+                            fetchAndSaveJsonData("AAPL", days);
                         } else {
                             Toast.makeText(this, "Please enter a positive number", Toast.LENGTH_SHORT).show();
                         }
@@ -398,7 +385,7 @@ public class HomeActivity extends AppCompatActivity {
                 }
             });
 
-            // Botón para cancelar
+
             builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
             builder.show();
@@ -407,7 +394,7 @@ public class HomeActivity extends AppCompatActivity {
 
             private void showNotification(Stock stock, double changePercent) {
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                        .setSmallIcon(R.drawable.ic_notification) // Ensure this icon exists in res/drawable
+                        .setSmallIcon(R.drawable.ic_notification)
                         .setContentTitle("Stock Price Alert")
                         .setContentText(stock.getName() + " price changed by " + String.format("%.2f", changePercent) + "%")
                         .setPriority(NotificationCompat.PRIORITY_HIGH);
@@ -435,13 +422,13 @@ public class HomeActivity extends AppCompatActivity {
 
                 CandleData candleData = new CandleData(dataSet);
                 candleStickChart.setData(candleData);
-                candleStickChart.invalidate(); // Refrescar el gráfico
+                candleStickChart.invalidate();
             }
 
 
             private void fetchAndSaveJsonData(String symbol, int days) {
                 String function = "TIME_SERIES_DAILY";
-                String apiKey = "your_api_key"; // Reemplaza con tu clave API
+                String apiKey = "KYZBJMS6CTE4CGQ1";
 
                 Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
                 call.enqueue(new Callback<JsonObject>() {
@@ -489,13 +476,10 @@ public class HomeActivity extends AppCompatActivity {
                     notificationManager.createNotificationChannel(channel);
                 }
             }
-
+            //TEST NOTIFICATION
             private void testNotification() {
-                // Create mock stock data
                 Stock mockStock = new Stock("AAPL", "Apple Inc.", "150.00", "0", true, "145.00", "155.00", "140.00", "1000000");
-                double mockChangePercent = 5.0; // Example change percent
-
-                // Show the notification
+                double mockChangePercent = 5.0;
                 showNotification(mockStock, mockChangePercent);
             }
 
@@ -505,7 +489,7 @@ public class HomeActivity extends AppCompatActivity {
                         .setMessage("Are you sure you want to delete " + stock.getName() + "?")
                         .setPositiveButton("Yes", (dialog, which) -> {
                             deleteStock(stock);
-                            saveStocks(); // Save the updated stock list
+                            saveStocks();
                         })
                         .setNegativeButton("No", null)
                         .show();
@@ -519,12 +503,12 @@ public class HomeActivity extends AppCompatActivity {
 
             private void scheduleStockPriceWork(String symbol) {
                 WorkRequest stockPriceWorkRequest = new PeriodicWorkRequest.Builder(StockPriceWorker.class, 1, TimeUnit.HOURS)
-                        .setInitialDelay(1, TimeUnit.HOURS) // Add an initial delay of 1 hour
+                        .setInitialDelay(1, TimeUnit.HOURS)
                         .setInputData(new Data.Builder().putString("symbol", symbol).build())
                         .build();
                 WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                         "StockPriceWorker_" + symbol,
-                        ExistingPeriodicWorkPolicy.KEEP, // Keep the existing work if it exists
+                        ExistingPeriodicWorkPolicy.KEEP,
                         (PeriodicWorkRequest) stockPriceWorkRequest
                 );
             }

@@ -38,17 +38,17 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
         holder.currentPriceTextView.setText("$" + stock.getCurrentPrice());
         holder.changePercentTextView.setText("(" + stock.getChangePercent() + "%)");
 
-        // Set arrow based on price change
+
         if (stock.isPriceUp()) {
-            holder.arrowImageView.setImageResource(R.drawable.ic_arrow_up); // Arrow up icon
+            holder.arrowImageView.setImageResource(R.drawable.ic_arrow_up);
         } else {
-            holder.arrowImageView.setImageResource(R.drawable.ic_arrow_down); // Arrow down icon
+            holder.arrowImageView.setImageResource(R.drawable.ic_arrow_down);
         }
 
-        // Handle item click
+
         holder.itemView.setOnClickListener(v -> listener.onStockClick(stock));
 
-        // Handle item long click
+
         holder.itemView.setOnLongClickListener(v -> {
             listener.onStockLongClick(stock);
             return true;

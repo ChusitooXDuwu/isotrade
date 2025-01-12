@@ -7,8 +7,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,22 +19,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main); // Enlaza el layout 'activity_main.xml'
+        setContentView(R.layout.activity_main);
 
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
         loginButton = findViewById(R.id.loginButton);
 
+        //SIMULACION DE LOGIN
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (username.getText().toString().equals("user") && password.getText().toString().equals("1234")) {
                     Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                     startActivity(intent);
-                    finish(); // Optional: closes login activity
+                    finish();
 
                 } else {
-                    // Si el usuario o la contraseña son incorrectos, se muestra un mensaje de error
                     Toast.makeText(MainActivity.this, "Login fallido", Toast.LENGTH_SHORT).show();
                     System.out.println("Login fallido");
                 }

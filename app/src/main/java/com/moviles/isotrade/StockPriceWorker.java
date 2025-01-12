@@ -1,6 +1,5 @@
 package com.moviles.isotrade;
 
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
@@ -27,8 +26,8 @@ import java.util.Map;
 public class StockPriceWorker extends Worker {
     private static final String TAG = "StockPriceWorker";
     private static final String CHANNEL_ID = "stock_notifications";
-    private static final double THRESHOLD = 5.0; // Example threshold
-    private static final long CACHE_DURATION = 3600000; // 1 hour in milliseconds
+    private static final double THRESHOLD = 5.0;
+    private static final long CACHE_DURATION = 3600000;
     private ApiService apiService;
     private static final Map<String, CachedStockData> cache = new HashMap<>();
 
@@ -63,7 +62,7 @@ public class StockPriceWorker extends Worker {
             checkThreshold(cachedData.stock);
         } else {
             String function = "TIME_SERIES_DAILY";
-            String apiKey = "KYZBJMS6CTE4CGQ1"; // Replace with your actual API key
+            String apiKey = "KYZBJMS6CTE4CGQ1";
 
             Call<JsonObject> call = apiService.getStockData(function, symbol, apiKey);
             call.enqueue(new Callback<JsonObject>() {
